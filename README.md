@@ -1,4 +1,3 @@
-```markdown
 # Image-Guided Navigation for Robotics
 
 An integrated surgical planning and robotic simulation system that bridges medical imaging with robotic control for minimally invasive neurosurgery applications.
