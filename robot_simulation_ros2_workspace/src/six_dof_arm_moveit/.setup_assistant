@@ -1,0 +1,10 @@
+moveit_setup_assistant_config:
+  urdf:
+    package: six_dof_arm_description
+    relative_path: urdf/six_dof_arm.urdf
+  srdf:
+    relative_path: config/six_dof_arm.srdf
+  package_settings:
+    author_name: Widya
+    author_email: widya_ayu.puspitaloka@kcl.ac.uk
+    generated_timestamp: 1747999007

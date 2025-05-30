@@ -1,0 +1,219 @@
+<?xml version="1.0"?>
+<robot name="six_dof_arm">
+  <!-- Define materials with unique colors -->
+  <material name="teal">
+    <color rgba="0.0 0.7 0.7 1.0"/>
+  </material>
+  <material name="orange">
+    <color rgba="1.0 0.5 0.0 1.0"/>
+  </material>
+  <material name="lime">
+    <color rgba="0.6 1.0 0.2 1.0"/>
+  </material>
+  <material name="maroon">
+    <color rgba="0.7 0.1 0.3 1.0"/>
+  </material>
+  <material name="gold">
+    <color rgba="1.0 0.8 0.0 1.0"/>
+  </material>
+  <material name="lavender">
+    <color rgba="0.8 0.7 1.0 1.0"/>
+  </material>
+  <material name="turquoise">
+    <color rgba="0.2 0.8 0.8 1.0"/>
+  </material>
+  <!-- Add the missing silver material -->
+  <material name="silver">
+    <color rgba="0.8 0.8 0.8 1.0"/>
+  </material>
+
+  <!-- Base Link -->
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <box size="1.0 1.0 0.1"/>
+      </geometry>
+      <material name="maroon"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="1.0 1.0 0.1"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <!-- Link 1 - Base vertical piece -->
+  <link name="arm_1">
+    <visual>
+      <geometry>
+        <box size="0.2 0.2 0.6"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0 0 0.3"/>
+      <material name="teal"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.2 0.2 0.6"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0 0 0.3"/>
+    </collision>
+  </link>
+
+  <!-- Link 2 - Angled arm segment -->
+  <link name="arm_2">
+    <visual>
+      <geometry>
+        <box size="0.15 0.15 1.0"/>
+      </geometry>
+      <origin rpy="0.5 0 0" xyz="0 0 0.5"/>
+      <material name="orange"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.15 0.15 1.0"/>
+      </geometry>
+      <origin rpy="0.5 0 0" xyz="0 0 0.5"/>
+    </collision>
+  </link>
+
+  <!-- Link 3 - Upper horizontal arm -->
+  <link name="arm_3">
+    <visual>
+      <geometry>
+        <box size="0.8 0.15 0.15"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.4 0 0"/>
+      <material name="lime"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.8 0.15 0.15"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.4 0 0"/>
+    </collision>
+  </link>
+
+  <!-- Link 4 - Wrist joint -->
+  <link name="arm_4">
+    <visual>
+      <geometry>
+        <cylinder length="0.15" radius="0.07"/>
+      </geometry>
+      <origin rpy="0 1.57 0" xyz="0 0 0"/>
+      <material name="gold"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder length="0.15" radius="0.07"/>
+      </geometry>
+      <origin rpy="0 1.57 0" xyz="0 0 0"/>
+    </collision>
+  </link>
+
+  <!-- Link 5 - End effector housing -->
+  <link name="arm_5">
+    <visual>
+      <geometry>
+        <cylinder length="0.1" radius="0.07"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0 0 0.05"/>
+      <material name="lavender"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder length="0.1" radius="0.07"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0 0 0.05"/>
+    </collision>
+  </link>
+
+  <!-- Link 6 - End effector head -->
+  <link name="arm_6">
+    <visual>
+      <geometry>
+        <sphere radius="0.07"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <material name="turquoise"/>
+    </visual>
+    <collision>
+      <geometry>
+        <sphere radius="0.07"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+    </collision>
+  </link>
+
+  <!-- End effector (needle) - Fix the position to align with joint -->
+ <link name="end_effector">
+  <visual>
+    <geometry>
+      <cylinder length="0.5" radius="0.01"/>
+    </geometry>
+    <origin rpy="0 0 0" xyz="0 0 -0.15"/>
+    <material name="silver"/>
+  </visual>
+  <collision>
+    <geometry>
+      <cylinder length="0.5" radius="0.01"/>
+    </geometry>
+    <origin rpy="0 0 0" xyz="0 0 -0.15"/>
+  </collision>
+ </link>
+
+
+  <!-- Define joints -->
+  <joint name="base_to_arm_1" type="revolute">
+    <parent link="base_link"/>
+    <child link="arm_1"/>
+    <origin rpy="0 0 0" xyz="0 0 0.05"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="100" lower="-3.14" upper="3.14" velocity="1.0"/>
+  </joint>
+
+  <joint name="arm_1_to_arm_2" type="revolute">
+    <parent link="arm_1"/>
+    <child link="arm_2"/>
+    <origin rpy="0 0 0" xyz="0 0 0.6"/>
+    <axis xyz="0 1 0"/>
+    <limit effort="100" lower="-1.57" upper="1.57" velocity="1.0"/>
+  </joint>
+
+  <joint name="arm_2_to_arm_3" type="revolute">
+    <parent link="arm_2"/>
+    <child link="arm_3"/>
+    <origin rpy="-0.5 0 0" xyz="0 0 1.0"/>
+    <axis xyz="0 1 0"/>
+    <limit effort="100" lower="-1.57" upper="1.57" velocity="1.0"/>
+  </joint>
+
+  <joint name="arm_3_to_arm_4" type="revolute">
+    <parent link="arm_3"/>
+    <child link="arm_4"/>
+    <origin rpy="0 0 0" xyz="0.8 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="100" lower="-3.14" upper="3.14" velocity="1.0"/>
+  </joint>
+
+  <joint name="arm_4_to_arm_5" type="revolute">
+    <parent link="arm_4"/>
+    <child link="arm_5"/>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit effort="100" lower="-1.57" upper="1.57" velocity="1.0"/>
+  </joint>
+
+  <joint name="arm_5_to_arm_6" type="revolute">
+    <parent link="arm_5"/>
+    <child link="arm_6"/>
+    <origin rpy="0 0 0" xyz="0 0 0.1"/>
+    <axis xyz="1 0 0"/>
+    <limit effort="100" lower="-3.14" upper="3.14" velocity="1.0"/>
+  </joint>
+
+  <joint name="arm_6_to_end_effector" type="fixed">
+    <parent link="arm_6"/>
+    <child link="end_effector"/>
+    <origin rpy="0 1.57 0" xyz="0 0 0.07"/>
+  </joint>
+</robot>

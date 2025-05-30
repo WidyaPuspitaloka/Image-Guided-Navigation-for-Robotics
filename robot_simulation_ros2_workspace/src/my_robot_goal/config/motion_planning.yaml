@@ -1,0 +1,33 @@
+planning_scene_monitor_options:
+  name: "planning_scene_monitor"
+  robot_description: "robot_description"
+  joint_state_topic: "/joint_states"
+  attached_collision_object_topic: "/moveit_cpp/planning_scene_monitor"
+  publish_planning_scene_topic: "/moveit_cpp/publish_planning_scene"
+  monitored_planning_scene_topic: "/moveit_cpp/monitored_planning_scene"
+  wait_for_initial_state_timeout: 10.0
+
+planning_pipelines:
+  pipeline_names: ["ompl"]
+
+planning_pipeline_configs:
+  ompl:
+    planning_plugin: "ompl_interface/OMPLPlanner"
+    request_adapters: ["default_planner_request_adapters/AddTimeOptimalParameterization", "default_planner_request_adapters/ResolveConstraintFrames", "default_planner_request_adapters/FixWorkspaceBounds", "default_planner_request_adapters/FixStartStateBounds", "default_planner_request_adapters/FixStartStateCollision", "default_planner_request_adapters/FixStartStatePathConstraints"]
+    start_state_max_bounds_error: 0.1
+    longest_valid_segment_fraction: 0.005
+
+# Trajectory execution parameters
+trajectory_execution:
+  allowed_execution_duration_scaling: 1.2
+  allowed_goal_duration_margin: 0.5
+  allowed_start_tolerance: 0.01
+
+# Planning request parameters
+plan_request_params:
+  planning_attempts: 10  # Increased from 1
+  planning_pipeline: ompl
+  planning_id: "omplDefault"
+  max_velocity_scaling_factor: 0.1  # Lower for smoother motion
+  max_acceleration_scaling_factor: 0.1  # Lower for smoother motion
+  planning_time: 10.0
