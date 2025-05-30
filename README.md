@@ -88,11 +88,30 @@ git clone https://github.com/WidyaPuspitaloka/Image-Guided-Navigation-for-Roboti
 ```
 
 #### Install 3D Slicer Extension
+
+**Method 1: Extension Wizard (Standard Approach)**
 1. **Open 3D Slicer** on your host machine
 2. **Go to:** Developer Tools → Extension Wizard  
-3. **Select:** `~/Desktop/Image-Guided-Navigation-for-Robotics/path_planning_3dslicer/` folder
-4. **Click "Reload and Test"** (wait 2-3 minutes for tests to complete)
-5. **Look for "ALL TEST COMPLETED"** confirmation
+3. **Click:** "Select Extension"
+4. **Browse to and select:**
+(e.g.) ~/Desktop/Image-Guided-Navigation-for-Robotics/path_planning_3dslicer/
+5. **Wait for extension to load** (may take a few moments)
+6. **Find PathPlanning** in modules dropdown (search for "PathPlanning" or check IGT category)
+7. **Click "Reload and Test"** (wait 2-3 minutes for tests to complete)
+8. **Look for "ALL TESTS COMPLETED"** confirmation
+
+**⚠️ Method 2: Use this method if Extension Wizard causes conflicts or doesn't work**
+
+1. **Open 3D Slicer** on your host machine
+2. **Go to:** Edit → Application Settings → Modules
+3. **Click:** "Add" button (next to "Additional module paths")
+4. **Browse to and select:**
+~/Desktop/Image-Guided-Navigation-for-Robotics/path_planning_3dslicer/PathPlanningMod/
+5. **Click:** OK
+6. **Restart 3D Slicer**
+7. **Find PathPlanning** in modules dropdown (search for "PathPlanning" or check IGT category)
+8. **Click "Reload and Test"** (wait 2-3 minutes for tests to complete)
+9. **Look for "ALL TESTS COMPLETED"** confirmation
 
 ### 2. Virtual Machine Setup (ROS2)
 
@@ -110,15 +129,29 @@ sudo apt install ros-humble-moveit-visual-tools
 
 #### Create ROS2 Workspace and Clone Repository
 ```bash
-# Create workspace
+# Create workspace (if you haven't already)
 mkdir -p ~/ros2_ws/src
 cd ~/ros2_ws/src
 
 # Clone repository for ROS2 components
 git clone https://github.com/WidyaPuspitaloka/Image-Guided-Navigation-for-Robotics.git
 
-# Install OpenIGTLink and ROS2-IGTL-Bridge
+# Install OpenIGTLink and ROS2-IGTL-Bridge (if you haven't already)
 git clone https://github.com/openigtlink/ros2_igtl_bridge.git
+```
+
+#### Extract ROS2 Packages to Main src Directory
+**⚠️ Critical Step: ROS2 packages must be at the top level of src/**
+
+```bash
+cd ~/ros2_ws/src
+
+# Copy packages from nested location to main src directory
+cp -r Image-Guided-Navigation-for-Robotics/robot_simulation_ros2_workspace/src/* .
+
+# Verify packages are now in the correct location
+ls ~/ros2_ws/src/
+# You should see: my_robot_goal, six_dof_arm_description, six_dof_arm_moveit (at the top level)
 ```
 
 #### Build OpenIGTLink from Source
@@ -131,46 +164,40 @@ make
 sudo make install
 ```
 
-#### Build ROS2 Workspace
+#### Build packages
 ```bash
-# Build all packages
+# Build only your main packages (faster and safer)
 cd ~/ros2_ws
-colcon build
+colcon build --packages-select my_robot_goal six_dof_arm_description six_dof_arm_moveit
 
 # Source the workspace (CRITICAL STEP!)
 source install/setup.bash
 
-# Add to bashrc to auto-source (optional but recommended)
+# Add to bashrc to auto-source (recommended)
 echo "source ~/ros2_ws/install/setup.bash" >> ~/.bashrc
 ```
 
 #### Verify Installation
 ```bash
 # Test if packages are built correctly
-ros2 pkg list | grep my_robot_goal
-ros2 pkg list | grep six_dof_arm
+ros2 pkg list | grep -E "(my_robot_goal|six_dof_arm)"
+# Should show all three packages
 
 # Your final structure should look like:
-# ~/ros2_ws/
-# ├── src/
-# │   ├── Image-Guided-Navigation-for-Robotics/
-# │   │   ├── robot_simulation_ros2_workspace/
-# │   │   │   └── src/
-# │   │   │       ├── my_robot_goal/
-# │   │   │       ├── six_dof_arm_description/
-# │   │   │       └── six_dof_arm_moveit/
-# │   │   └── path_planning_3dslicer/
-# │   └── ros2_igtl_bridge/
-# ├── build/
-# ├── install/
-# └── log/
+# ~/ros2_ws/src/
+# ├── my_robot_goal/                      # ← At the correct level
+# ├── six_dof_arm_description/            # ← At the correct level
+# ├── six_dof_arm_moveit/                 # ← At the correct level
+# ├── ros2_igtl_bridge/
+# ├── Image-Guided-Navigation-for-Robotics/  # Keep for reference
+# └── OpenIGTLink/
 ```
 
 ## ✅ Quick Test (Recommended First Step)
 
 ### Test the System Before Using Your Data
 1. **Open 3D Slicer** (Host Machine)
-2. **Load the PathPlanning extension**
+2. **Find PathPlanning** in modules dropdown (IGT category or search)
 3. **Click "Reload and Test"** 
 4. **Wait 2-3 minutes** for all tests to complete
 5. **Look for "ALL TESTS COMPLETED"** confirmation
@@ -207,7 +234,8 @@ ros2 launch my_robot_goal robot_plan.launch.py
    - Create connector: **Server**, **Active**, Port **18944**
    - Click **"Send Complete Data"** when ROS2 shows "Connection established"
   
-   <img width="400" alt="slicer-openigtlink-extension" src="https://github.com/user-attachments/assets/a87a93ae-02b0-40b9-b270-372870032ee2" /> <img width="400" alt="Screenshot 2025-05-30 at 12 21 04" src="https://github.com/user-attachments/assets/d1de3c9b-2814-408c-bcc7-08fc3ea03a9b" />
+<img width="400" alt="slicer-openigtlink-extension" src="https://github.com/user-attachments/assets/d58d5f62-86c5-4377-982b-e6c7d67635ce" />  <img width="400" alt="slicer-send" src="https://github.com/user-attachments/assets/4dc6964b-39fe-488c-900c-35f2f20d7946" />
+
 
 
 ### Step 3: Robot Execution (VM)
@@ -225,24 +253,31 @@ ros2 launch my_robot_goal robot_plan.launch.py
 
 ### Setup Issues
 
-**"Extension not found in Slicer"**
+**"PathPlanning module not found in Slicer"**
 ```bash
-# Make sure you're pointing to the correct folder:
-# ~/Desktop/Image-Guided-Navigation-for-Robotics/path_planning_3dslicer/
-# NOT the parent repository folder
+# Use direct module loading instead of Extension Wizard:
+# 1. Edit → Application Settings → Modules
+# 2. Add path: ~/Desktop/Image-Guided-Navigation-for-Robotics/path_planning_3dslicer/PathPlanningMod/
+# 3. Restart Slicer
+# 4. Search for "PathPlanning" in modules dropdown
 ```
 
-**"colcon build fails in VM"**
+**"colcon build fails - package not found"**
 ```bash
-# Verify you're in the right directory
-cd ~/ros2_ws  # NOT ~/ros2_ws/src
+# Make sure packages are at the top level of src/
+cd ~/ros2_ws/src
+ls  # Should see my_robot_goal, six_dof_arm_* at this level
 
-# Check if all packages are installed
-ros2 pkg list | grep moveit
-sudo apt install ros-humble-moveit ros-humble-moveit-visual-tools
+# If packages are nested, copy them out:
+cp -r Image-Guided-Navigation-for-Robotics/robot_simulation_ros2_workspace/src/* .
+```
 
-# Always source after building
-source install/setup.bash
+**"Duplicate package names error"**
+```bash
+# Remove old package versions if they exist
+cd ~/ros2_ws/src
+rm -rf old_package_name  # or move to backup folder
+# Keep only one version of each package
 ```
 
 **"Package not found when launching"**
@@ -275,63 +310,11 @@ ros2 pkg list | grep my_robot_goal
 # 3. Look for "Connection established" message in VM terminal
 ```
 
-**OpenIGTLink Connection Failed**
-```bash
-# Verify port availability
-netstat -an | grep 18944
-
-# Ensure proper network setup between host and VM
-# VMware Fusion: Use "Share with my Mac" network setting
-```
-
-### Runtime Issues
-
-**"Robot planning failed"**
-```bash
-# Check if target position is within robot workspace
-# Increase planning timeout in launch file
-# Verify MoveIt configuration is loaded correctly
-```
-
 ## 🧪 Testing and Validation
 
 ### Built-in Module Testing
 
 The 3D Slicer extension includes comprehensive built-in tests that run automatically when you click **"Reload and Test"** in the module interface.
-
-#### **Modifying Test Data Paths**
-
-To use your own test data, modify the hardcoded paths in the test file:
-
-1. **Open the module file**: `PathPlanningMod.py`
-2. **Find the test setup section** (around line 1400):
-   ```python
-   # ====== HARDCODED TEST DATA PATHS - MODIFY THESE AS NEEDED ======
-   # Change this path to your test data directory
-   self.testDataDir = "/Users/widyapuspitaloka/Desktop/TestSet"
-   
-   # Individual file paths - modify these if your files have different names
-   self.brain_file = "fakeBrainTest.nii.gz"
-   self.hippo_file = "r_hippoTest.nii.gz" 
-   self.ventricles_file = "ventriclesTest.nii.gz"
-   self.vessels_file = "vesselsTestDilate1.nii.gz"
-   self.cortex_file = "r_cortexTest.nii.gz"
-   self.entries_file = "entriesSubsample.fcsv"
-   self.targets_file = "targetsSubsample.fcsv"
-   ```
-
-3. **Update paths to match your data**:
-   ```python
-   # Example: Update to your local test data directory
-   self.testDataDir = "/path/to/your/test/data"
-   
-   # Example: Update file names if different
-   self.hippo_file = "my_hippocampus.nii.gz"
-   self.vessels_file = "my_vessels.nii.gz"
-   # ... etc
-   ```
-
-4. **Click "Reload and Test"** in the module interface to run tests with your data
 
 #### **Test Coverage**
 
@@ -363,12 +346,6 @@ System test PASSED: Resource Limitations
 ======= FINAL TEST SUMMARY =======
 Overall: 14/14 passed
 ```
-
-### End-to-End Validation
-1. **Load test dataset** (BrainPlanning dataset)
-2. **Execute complete pipeline** from planning to robot movement
-3. **Verify coordinate accuracy** between planned and executed positions
-4. **Validate safety constraints** throughout execution
 
 ## ⚙️ Customization and Personalization
 
@@ -440,8 +417,7 @@ For complete visualization, ensure these components are enabled in RViz:
 #### Interactive Elements
 - **Next Button**: Progress through planning stages
 
-<img width="400" alt="rviz-gui" src="https://github.com/user-attachments/assets/08e14d1a-1c6d-43b6-b5b7-73dba46bc945" />
-
+<img width="400" alt="rviz-gui" src="https://github.com/user-attachments/assets/4bf47afb-4fdb-4da1-8588-ad5716ef8a58" />
 
 ## 📈 Future Improvements
 
@@ -457,15 +433,17 @@ For complete visualization, ensure these components are enabled in RViz:
 - [ ] Multi-robot coordination
 - [ ] Clinical validation studies
 
-## 📹 Demo Video
+      
+# 📹 Demo Video
 
 A demonstration video showing the complete workflow from 3D Slicer path planning to robot execution is available:
 
 
-https://github.com/user-attachments/assets/35f91310-87df-4bd4-92ca-ffb1b340ac3a
+https://github.com/user-attachments/assets/35570a16-6f63-4b27-b59a-7cbaf5bbffe8
 
 
 *Complete walkthrough: Testing → Path planning → OpenIGTLink setup → Robot execution*
+
 
 ## 📄 License
 
@@ -489,13 +467,3 @@ GitHub: [@WidyaPuspitaloka](https://github.com/WidyaPuspitaloka)
 ---
 
 *This project was developed as part of the 7MRI0070: Image-guided Navigation for Robotics course at King's College London.*
-```
-
-This is ready to copy-paste directly into your README.md file! The key additions:
-
-✅ **Clear separation** between Host Machine and VM setup  
-✅ **Step-by-step clone instructions** for both systems  
-✅ **Proper sourcing instructions** for ROS2  
-✅ **Directory structure** showing where everything goes  
-✅ **Troubleshooting** for common setup issues  
-✅ **Startup sequence** clarification (ROS2 first, then Slicer)
