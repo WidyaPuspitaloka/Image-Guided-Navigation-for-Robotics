@@ -107,7 +107,6 @@ source install/setup.bash
 # Load the extension when prompted
 ```
 
-
 ## 🚀 Usage
 
 ### Step 1: Launch ROS2 System
@@ -230,19 +229,6 @@ workspace_bounds:
 
 ## 🧪 Testing and Validation
 
-### Component Testing
-```bash
-# Run unit tests for path planning
-cd ~/ros2_ws/src/needle_path_planning/tests
-python test_path_planning.py
-
-# Test OpenIGTLink communication
-ros2 run ros2_igtl_bridge test_communication
-
-# Validate robot controller
-ros2 test robot_controller_tests
-```
-
 ### Built-in Module Testing
 
 The 3D Slicer extension includes comprehensive built-in tests that run automatically when you click **"Reload and Test"** in the module interface.
@@ -324,8 +310,10 @@ Overall: 11/11 passed
 
 #### Build/Compilation Issues
 
-**catkin_make/colcon build fails**
+**colcon build fails**
 ```bash
+# Check your code again
+
 # Verify all necessary packages are installed
 ros2 pkg list | grep moveit
 ros2 pkg list | grep igtl
@@ -339,36 +327,12 @@ sudo apt-get install ros-humble-moveit-visual-tools
 source ~/ros2_ws/install/setup.bash
 ```
 
-#### Path Planning Issues
-
-**Planning Fails with "No Safe Trajectories"**
-```bash
-# Check input data validity - ensure correct vtkMRMLMarkupsFiducialNode format
-# Verify anatomical structure labels are properly loaded
-# Adjust safety margins in configuration
-# Test with simplified dataset first
-```
-
-**Planning Fails Consistently/Robot Self-Collision**
-- **Rotate/Translate Input Data**: Use 3D Slicer's [Transforms module](https://slicer.readthedocs.io/en/latest/user_guide/modules/transforms.html) to adjust brain model and needle path positions
-- **Modify Robot Origins**: Edit URDF file origins in `<workspace>/src/robot_description/urdf/robot.urdf`
-- **Adjust Planning Parameters**:
-  ```yaml
-  # In user_parameters.yaml
-  jump_threshold: 0.0  # Change from 5.0 to 0.0
-  planning_time_limit: 30.0  # Increase from default
-  planning_attempts: 50  # Increase attempts
-  ```
-
 #### Communication Issues
 
 **OpenIGTLink Connection Failed**
 ```bash
 # Verify port availability
 netstat -an | grep 18944
-
-# Check firewall settings
-sudo ufw status
 
 # Correct startup sequence (IMPORTANT):
 # 1. Launch ROS2 system: ros2 launch my_robot_goal robot_plan.launch.py
@@ -385,10 +349,8 @@ For complete visualization, ensure these components are enabled in RViz:
 
 #### Essential Displays
 - **MotionPlanning**: Primary robot visualization and control interface
-- **MarkerArray**: Topic `/rviz_visual_tools` - for interactive buttons and text
-- **Marker**: Topic `/brain_mesh` - for anatomical structure visualization
+- **MarkerArray**: Topic `/brain_structures` - to show brain structure points
 - **RvizVisualToolsGui**: Essential interaction panel (add via `Panels` → `RvizVisualToolsGui` if missing)
-
 
 #### Interactive Elements
 - **Next Button**: Progress through planning stages
