@@ -15,22 +15,3 @@ endif()
 install(DIRECTORY config DESTINATION share/${PROJECT_NAME})
 install(FILES .setup_assistant DESTINATION share/${PROJECT_NAME})
 
-find_package(rclcpp REQUIRED)
-find_package(ros2_igtl_bridge REQUIRED)
-find_package(visualization_msgs REQUIRED)
-find_package(geometry_msgs REQUIRED)
-
-# C++ brain mesh processor
-add_executable(mesh_processor src/my_robot_goal/mesh_processor.cpp)
-ament_target_dependencies(brain_mesh_processor
-  rclcpp
-  ros2_igtl_bridge
-  visualization_msgs
-  geometry_msgs
-  std_msgs
-)
-
-install(TARGETS
-  brain_mesh_processor
-  DESTINATION lib/${PROJECT_NAME}
-)
