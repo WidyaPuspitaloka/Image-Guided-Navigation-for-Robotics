@@ -1,3 +1,4 @@
+```markdown
 # Image-Guided Navigation for Robotics
 
 An integrated surgical planning and robotic simulation system that bridges medical imaging with robotic control for minimally invasive neurosurgery applications.
@@ -36,195 +37,261 @@ The system demonstrates trajectory planning for deep brain procedures (e.g., hip
 - Workspace boundary validation and collision detection
 - Coordinate transformation pipeline (Medical RAS → Robot workspace)
 
-## 🔧 Prerequisites
+## 📋 Before You Start
+
+### Required Files
+- Brain MRI volume (`.nii.gz`)
+- Anatomical structures as separate label maps:
+  - Hippocampus (target structure)
+  - Blood vessels 
+  - Ventricles
+  - Cortex
+- Entry points fiducial file (`.fcsv`)
+- Target points fiducial file (`.fcsv`)
+
+### File Format Requirements
+- **MUST be** `vtkMRMLMarkupsFiducialNode` for fiducials
+- **MUST be** `vtkMRMLLabelVolumeNode` for label maps
+- Fiducial points **MUST** be named exactly "entry_point" and "target_point"
 
 ### Software Requirements
-- **3D Slicer** (latest version)
-- **ROS2 Humble** (or compatible distribution)
-- **Ubuntu 22.04** or compatible Linux distribution
+- **3D Slicer** (latest version) - Host machine
+- **ROS2 Humble** (or compatible distribution) - VM
+- **Ubuntu 22.04** or compatible Linux distribution - VM
 - **Python 3.8+**
 
 ### Hardware Requirements
 - Minimum 8GB RAM (16GB recommended)
 - GPU support recommended for visualization
 - Network capability for OpenIGTLink communication
+- VMware Fusion or similar virtualization software
 
 ## 📦 Installation
 
-### 1. 3D Slicer Setup
+### System Architecture Overview
+This project requires setup on **TWO systems**:
+- **Host Machine** (Mac/Windows): Runs 3D Slicer with path planning extension
+- **Virtual Machine** (Ubuntu): Runs ROS2 robot simulation system
 
+### 1. Host Machine Setup (3D Slicer)
+
+#### Install 3D Slicer
 ```bash
-# Install 3D Slicer from official website
+# Download and install 3D Slicer from official website
 # Install OpenIGTLinkIF extension through Extension Manager
 ```
 
-### 2. ROS2 Environment Setup
-
+#### Clone Repository for Slicer Extension
 ```bash
-# Install ROS2 Humble
+# On your host machine (Mac/Windows)
+cd ~/Desktop  # or wherever you prefer
+git clone https://github.com/WidyaPuspitaloka/Image-Guided-Navigation-for-Robotics.git
+```
+
+#### Install 3D Slicer Extension
+1. **Open 3D Slicer** on your host machine
+2. **Go to:** Developer Tools → Extension Wizard  
+3. **Select:** `~/Desktop/Image-Guided-Navigation-for-Robotics/path_planning_3dslicer/` folder
+4. **Click "Reload and Test"** (wait 2-3 minutes for tests to complete)
+5. **Look for "ALL TEST COMPLETED"** confirmation
+
+### 2. Virtual Machine Setup (ROS2)
+
+#### Install ROS2 Environment
+```bash
+# In your VM terminal
 sudo apt update
 sudo apt install ros-humble-desktop
-
-# Create workspace
-mkdir -p ~/ros2_ws/src
-cd ~/ros2_ws
 
 # Install dependencies
 sudo apt install ros-humble-moveit
 sudo apt install ros-humble-joint-state-publisher-gui
+sudo apt install ros-humble-moveit-visual-tools
 ```
 
-### 3. Clone and Build Project
-
+#### Create ROS2 Workspace and Clone Repository
 ```bash
-# Clone repository
+# Create workspace
+mkdir -p ~/ros2_ws/src
 cd ~/ros2_ws/src
+
+# Clone repository for ROS2 components
 git clone https://github.com/WidyaPuspitaloka/Image-Guided-Navigation-for-Robotics.git
 
 # Install OpenIGTLink and ROS2-IGTL-Bridge
 git clone https://github.com/openigtlink/ros2_igtl_bridge.git
+```
 
-# Build OpenIGTLink from source
+#### Build OpenIGTLink from Source
+```bash
 cd ~
 git clone https://github.com/openigtlink/OpenIGTLink.git
 mkdir OpenIGTLink-build && cd OpenIGTLink-build
 cmake ../OpenIGTLink
 make
 sudo make install
+```
 
-# Build ROS2 packages
+#### Build ROS2 Workspace
+```bash
+# Build all packages
 cd ~/ros2_ws
 colcon build
+
+# Source the workspace (CRITICAL STEP!)
 source install/setup.bash
+
+# Add to bashrc to auto-source (optional but recommended)
+echo "source ~/ros2_ws/install/setup.bash" >> ~/.bashrc
 ```
 
-### 4. 3D Slicer Extension Installation
-
+#### Verify Installation
 ```bash
-# Open 3D Slicer
-# Go to: Developer Tools → Extension Wizard
-# Select the downloaded 3d_slicer_path_planning folder
-# Load the extension when prompted
+# Test if packages are built correctly
+ros2 pkg list | grep my_robot_goal
+ros2 pkg list | grep six_dof_arm
+
+# Your final structure should look like:
+# ~/ros2_ws/
+# ├── src/
+# │   ├── Image-Guided-Navigation-for-Robotics/
+# │   │   ├── robot_simulation_ros2_workspace/
+# │   │   │   └── src/
+# │   │   │       ├── my_robot_goal/
+# │   │   │       ├── six_dof_arm_description/
+# │   │   │       └── six_dof_arm_moveit/
+# │   │   └── path_planning_3dslicer/
+# │   └── ros2_igtl_bridge/
+# ├── build/
+# ├── install/
+# └── log/
 ```
 
-## 🚀 Usage
+## ✅ Quick Test (Recommended First Step)
 
-### Step 1: Launch ROS2 System
+### Test the System Before Using Your Data
+1. **Open 3D Slicer** (Host Machine)
+2. **Load the PathPlanning extension**
+3. **Click "Reload and Test"** 
+4. **Wait 2-3 minutes** for all tests to complete
+5. **Look for "ALL TESTS COMPLETED"** confirmation
 
+This ensures everything is working before you load your own data!
+
+## 🚀 Quick Start Guide
+
+### Step 1: Launch ROS2 System (VM First!)
 ```bash
-# Single terminal launch - starts everything automatically
+# IMPORTANT: Always source your workspace first!
 cd ~/ros2_ws
 source install/setup.bash
+
+# Launch complete robot system
 ros2 launch my_robot_goal robot_plan.launch.py
 ```
+**Wait for:** "Waiting for connection..." message before proceeding to Slicer
 
-**What this launch file does:**
-- ✅ Starts the robot simulation and MoveIt2 configuration
-- ✅ Launches OpenIGTLink bridge (waits for 3D Slicer connection)
-- ✅ Initializes robot controller
-- ✅ Opens RViz with proper display configuration
-- ✅ Shows "Waiting for connection..." message until 3D Slicer connects
-
-### Step 2: Configure 3D Slicer
-
-1. **Load Data**:
-   - Load brain MRI volume
-   - Load anatomical structure label maps (hippocampus, vessels, ventricles, cortex)
-   - Load entry and target point fiducials
+### Step 2: 3D Slicer Workflow (Host Machine)
+1. **Load Your Data** (or use test data):
+   - Brain MRI volume
+   - Anatomical label maps (hippocampus, vessels, ventricles, cortex)
+   - Entry and target fiducials
 
 2. **Run Path Planning**:
-   - Open the Needle Path Planning extension
-   - Select input volumes and fiducial lists (**Must be `vtkMRMLMarkupsFiducialNode` and `vtkMRMLLabelVolumeNode`**)
-   - Click "Plan Trajectory" and wait (8-20 seconds depending on dataset size)
-   - Review safety metrics and selected path
-   - Click "Prepare data to send to ROS"
+   - Open **Needle Path Planning** module
+   - Select appropriate columns/inputs
+   - Click **"Plan Trajectory"** (wait 30-60 seconds)
+   - Review results and safety metrics
 
-3. **Setup OpenIGTLink**:
-   - Open OpenIGTLinkIF module
-   - In Connectors, click `+`
-   - Select **Server** and **Active** in Properties section
-   - Use default Hostname (`localhost`) and Port (`18944`)
-   - Expand I/O Configuration and add:
-     - The created `vtkMRMLMarkupsFiducialNode` (ROS_entry_and_target_points)
-     - The created `vtkMRMLModelNode` (brain structures)
-   - **CRITICAL**: Fiducial points must be named exactly "entry_point" and "target_point"
-   - Activate connection (status should show "ON")
-
-<img width="749" alt="slicer-openigtlink-extension" src="https://github.com/user-attachments/assets/40c4f61f-0ade-4c3c-95f1-f7bc2609580e" />
+3. **Setup Communication**:
+   - Open **OpenIGTLinkIF** module
+   - Create connector: **Server**, **Active**, Port **18944**
+   - Click **"Send Complete Data"** when ROS2 shows "Connection established"
+  
+   <img width="400" alt="slicer-openigtlink-extension" src="https://github.com/user-attachments/assets/a87a93ae-02b0-40b9-b270-372870032ee2" /> <img width="400" alt="Screenshot 2025-05-30 at 12 21 04" src="https://github.com/user-attachments/assets/d1de3c9b-2814-408c-bcc7-08fc3ea03a9b" />
 
 
-### Step 3: Execute Robot Movement
+### Step 3: Robot Execution (VM)
+1. **In RViz** (opens automatically):
+   - Add **MarkerArray** display
+   - Set topic to **`/brain_structures`**
+   - Wait for brain structure points to appear
 
-1. **Verify Connection**:
-   - ROS2 terminal should show "Connection established. Start the IGTL loop.."
-   - 3D Slicer OpenIGTLinkIF status changes from "WAIT" to "ON"
+2. **Execute Movement**:
+   - Use **RvizVisualTool** GUI panel
+   - Click **"Next"** to progress through planning stages
+   - Watch robot move to planned trajectory
 
-2. **Send Trajectory Data**:
-   - In 3D Slicer, click "Send to Robot"
-   - Verify data reception in ROS2 terminal output
+## 🐛 Common Issues & Solutions
 
-3. **Robot Execution**:
-   - RViz opens automatically with proper visualization
-   - Use RViz interface to visualize planned motion
-   - Execute trajectory through MoveIt2 interface
-   - Monitor safety margins and collision detection
+### Setup Issues
 
-**Note**: The system waits for 3D Slicer connection before proceeding - you'll see "Waiting for connection..." until OpenIGTLinkIF is activated.
-
-## ⚙️ Customization and Personalization
-
-### Robot Configuration
-
-#### Using Your Own Robot
-1. **Configure with MoveIt2 Setup Assistant**:
-   ```bash
-   ros2 launch moveit_setup_assistant setup_assistant.launch.py
-   ```
-   
-2. **Update Parameters**:
-   ```yaml
-   # In user_parameters.yaml
-   planning_group: "your_robot_arm"    # Match your MoveIt config
-   base_link: "your_base_link"         # Your robot's base frame
-   end_effector_link: "your_ee_link"   # Your end effector frame
-   ```
-
-3. **Launch Your Robot**:
-   ```bash
-   ros2 launch your_robot_moveit your_robot.launch.py
-   ros2 launch needle_path_simulation needle_insertion.launch
-   ```
-
-### Parameter Tuning
-
-#### Critical Parameters (user_parameters.yaml)
-```yaml
-# Path Planning
-max_trajectory_length: 80.0  # mm - adjust for your application
-max_entry_angle: 55.0        # degrees - steeper = more tissue damage
-vessel_safety_margin: 2.0    # mm - minimum clearance from vessels
-ventricle_safety_margin: 1.0 # mm - minimum clearance from ventricles
-
-# Robot Control
-velocity_scaling: 0.1        # 0.05-0.2 recommended for surgical precision
-planning_timeout: 10.0       # seconds - increase for complex scenarios
-planning_attempts: 30        # increase if planning often fails
-jump_threshold: 0.0          # 0.0 for maximum flexibility
-
-# Visualization
-needle_orientation: [0, 0, 1]  # needle direction in end effector frame
+**"Extension not found in Slicer"**
+```bash
+# Make sure you're pointing to the correct folder:
+# ~/Desktop/Image-Guided-Navigation-for-Robotics/path_planning_3dslicer/
+# NOT the parent repository folder
 ```
 
-#### Workspace Adjustment
-```yaml
-# Robot workspace bounds (adjust to match your robot)
-workspace_bounds:
-  x_min: 0.2    # meters
-  x_max: 0.9
-  y_min: -0.4
-  y_max: 0.4
-  z_min: 0.4
-  z_max: 1.0
+**"colcon build fails in VM"**
+```bash
+# Verify you're in the right directory
+cd ~/ros2_ws  # NOT ~/ros2_ws/src
+
+# Check if all packages are installed
+ros2 pkg list | grep moveit
+sudo apt install ros-humble-moveit ros-humble-moveit-visual-tools
+
+# Always source after building
+source install/setup.bash
+```
+
+**"Package not found when launching"**
+```bash
+# Make sure you've sourced the workspace
+cd ~/ros2_ws
+source install/setup.bash
+
+# Verify package exists
+ros2 pkg list | grep my_robot_goal
+
+# Run from the main workspace directory (~/ros2_ws), not src/
+```
+
+### Communication Issues
+
+**"No brain structures visible in RViz"**
+```bash
+# Check if MarkerArray is properly configured
+# In RViz: Add → MarkerArray
+# Topic: /brain_structures
+# Wait 10-15 seconds for data transmission
+```
+
+**"Connection fails between Slicer and ROS2"**
+```bash
+# Correct startup sequence:
+# 1. Launch ROS2 FIRST (wait for "Waiting for connection...")
+# 2. THEN activate Slicer OpenIGTLink server
+# 3. Look for "Connection established" message in VM terminal
+```
+
+**OpenIGTLink Connection Failed**
+```bash
+# Verify port availability
+netstat -an | grep 18944
+
+# Ensure proper network setup between host and VM
+# VMware Fusion: Use "Share with my Mac" network setting
+```
+
+### Runtime Issues
+
+**"Robot planning failed"**
+```bash
+# Check if target position is within robot workspace
+# Increase planning timeout in launch file
+# Verify MoveIt configuration is loaded correctly
 ```
 
 ## 🧪 Testing and Validation
@@ -295,7 +362,7 @@ System test PASSED: Parameter Extremes
 System test PASSED: Resource Limitations
 
 ======= FINAL TEST SUMMARY =======
-Overall: 11/11 passed
+Overall: 14/14 passed
 ```
 
 ### End-to-End Validation
@@ -304,41 +371,60 @@ Overall: 11/11 passed
 3. **Verify coordinate accuracy** between planned and executed positions
 4. **Validate safety constraints** throughout execution
 
-## 🐛 Troubleshooting
+## ⚙️ Customization and Personalization
 
-### Common Issues
+### Robot Configuration
 
-#### Build/Compilation Issues
+#### Using Your Own Robot
+1. **Configure with MoveIt2 Setup Assistant**:
+   ```bash
+   ros2 launch moveit_setup_assistant setup_assistant.launch.py
+   ```
+   
+2. **Update Parameters**:
+   ```yaml
+   # In user_parameters.yaml
+   planning_group: "your_robot_arm"    # Match your MoveIt config
+   base_link: "your_base_link"         # Your robot's base frame
+   end_effector_link: "your_ee_link"   # Your end effector frame
+   ```
 
-**colcon build fails**
-```bash
-# Check your code again
+3. **Launch Your Robot**:
+   ```bash
+   ros2 launch your_robot_moveit your_robot.launch.py
+   ros2 launch needle_path_simulation needle_insertion.launch
+   ```
 
-# Verify all necessary packages are installed
-ros2 pkg list | grep moveit
-ros2 pkg list | grep igtl
+### Parameter Tuning
 
-# Install missing packages
-sudo apt-get update
-sudo apt-get install ros-humble-moveit
-sudo apt-get install ros-humble-moveit-visual-tools
+#### Critical Parameters (user_parameters.yaml)
+```yaml
+# Path Planning
+max_trajectory_length: 80.0  # mm - adjust for your application
+max_entry_angle: 55.0        # degrees - steeper = more tissue damage
+vessel_safety_margin: 2.0    # mm - minimum clearance from vessels
+ventricle_safety_margin: 1.0 # mm - minimum clearance from ventricles
 
-# Remember to source your workspace!
-source ~/ros2_ws/install/setup.bash
+# Robot Control
+velocity_scaling: 0.1        # 0.05-0.2 recommended for surgical precision
+planning_timeout: 10.0       # seconds - increase for complex scenarios
+planning_attempts: 30        # increase if planning often fails
+jump_threshold: 0.0          # 0.0 for maximum flexibility
+
+# Visualization
+needle_orientation: [0, 0, 1]  # needle direction in end effector frame
 ```
 
-#### Communication Issues
-
-**OpenIGTLink Connection Failed**
-```bash
-# Verify port availability
-netstat -an | grep 18944
-
-# Correct startup sequence (IMPORTANT):
-# 1. Launch ROS2 system: ros2 launch my_robot_goal robot_plan.launch.py
-# 2. Wait for "Waiting for connection..." message
-# 3. THEN activate 3D Slicer OpenIGTLinkIF server
-# 4. Look for "Connection established" confirmation
+#### Workspace Adjustment
+```yaml
+# Robot workspace bounds (adjust to match your robot)
+workspace_bounds:
+  x_min: 0.2    # meters
+  x_max: 0.9
+  y_min: -0.4
+  y_max: 0.4
+  z_min: 0.4
+  z_max: 1.0
 ```
 
 ## 🎨 Visualization and User Experience
@@ -354,6 +440,9 @@ For complete visualization, ensure these components are enabled in RViz:
 
 #### Interactive Elements
 - **Next Button**: Progress through planning stages
+
+<img width="400" alt="rviz-gui" src="https://github.com/user-attachments/assets/08e14d1a-1c6d-43b6-b5b7-73dba46bc945" />
+
 
 ## 📈 Future Improvements
 
@@ -371,12 +460,13 @@ For complete visualization, ensure these components are enabled in RViz:
 
 ## 📹 Demo Video
 
-A comprehensive demonstration video showing the complete workflow from 3D Slicer path planning to robot execution is available:
+A demonstration video showing the complete workflow from 3D Slicer path planning to robot execution is available:
 
 
+https://github.com/user-attachments/assets/35f91310-87df-4bd4-92ca-ffb1b340ac3a
 
-*Complete walkthrough: Data loading → Path planning → OpenIGTLink setup → Robot execution*
 
+*Complete walkthrough: Testing → Path planning → OpenIGTLink setup → Robot execution*
 
 ## 📄 License
 
@@ -400,3 +490,13 @@ GitHub: [@WidyaPuspitaloka](https://github.com/WidyaPuspitaloka)
 ---
 
 *This project was developed as part of the 7MRI0070: Image-guided Navigation for Robotics course at King's College London.*
+```
+
+This is ready to copy-paste directly into your README.md file! The key additions:
+
+✅ **Clear separation** between Host Machine and VM setup  
+✅ **Step-by-step clone instructions** for both systems  
+✅ **Proper sourcing instructions** for ROS2  
+✅ **Directory structure** showing where everything goes  
+✅ **Troubleshooting** for common setup issues  
+✅ **Startup sequence** clarification (ROS2 first, then Slicer)
