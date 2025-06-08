@@ -2,6 +2,16 @@
 
 An integrated surgical planning and robotic simulation system that bridges medical imaging with robotic control for minimally invasive neurosurgery applications.
 
+# 📹 Demo Video
+
+A demonstration video showing the complete workflow from 3D Slicer path planning to robot execution is available:
+
+
+https://github.com/user-attachments/assets/35570a16-6f63-4b27-b59a-7cbaf5bbffe8
+
+
+*Complete walkthrough: Testing → Path planning → OpenIGTLink setup → Robot execution*
+
 ## 🎯 Project Overview
 
 This project develops an end-to-end image-guided robotic navigation system that combines:
@@ -432,17 +442,6 @@ For complete visualization, ensure these components are enabled in RViz:
 - [ ] Intraoperative replanning capabilities
 - [ ] Multi-robot coordination
 - [ ] Clinical validation studies
-
-      
-# 📹 Demo Video
-
-A demonstration video showing the complete workflow from 3D Slicer path planning to robot execution is available:
-
-
-https://github.com/user-attachments/assets/35570a16-6f63-4b27-b59a-7cbaf5bbffe8
-
-
-*Complete walkthrough: Testing → Path planning → OpenIGTLink setup → Robot execution*
 
 
 ## 📄 License
